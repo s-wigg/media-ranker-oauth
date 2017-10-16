@@ -1,4 +1,7 @@
 class SessionsController < ApplicationController
+
+  skip_before_filter :authenticate
+
   def login_form
   end
 
@@ -51,4 +54,6 @@ def logout
   flash[:result_text] = "Successfully logged out"
   redirect_to root_path
 end
+
+
 end
