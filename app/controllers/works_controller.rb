@@ -3,6 +3,8 @@ class WorksController < ApplicationController
   # of work we're dealing with
   before_action :category_from_work, except: [:root, :index, :new, :create]
 
+  before_action :restrict_edit, only: [:edit, :destroy]
+
   def root
     @albums = Work.best_albums
     @books = Work.best_books
@@ -90,12 +92,20 @@ class WorksController < ApplicationController
 
 private
   def media_params
-    params.require(:work).permit(:title, :category, :creator, :description, :publication_year)
+    params.require(:work).permit(:title, :category, :creator, :description, :publication_year).merge(user_id: @login_user.id)
   end
 
   def category_from_work
     @work = Work.find_by(id: params[:id])
     render_404 unless @work
     @media_category = @work.category.downcase.pluralize
+  end
+
+  def restrict_edit
+    unless @login_user.id == @work.user_id
+      flash[:status] = :failure
+      flash[:result_text] = "Access Denied -- Must be owner to edit or delete this work"
+      redirect_to work_path(@work)
+    end
   end
 end

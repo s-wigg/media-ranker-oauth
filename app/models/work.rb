@@ -3,7 +3,7 @@ class Work < ApplicationRecord
   has_many :votes, dependent: :destroy
   has_many :ranking_users, through: :votes, source: :user
 
-  # belongs_to :user
+  belongs_to :user, required: false 
 
   validates :category,  presence: true,
                         inclusion: { in: CATEGORIES }
