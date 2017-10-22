@@ -131,7 +131,6 @@ describe WorksController do
   end
 
   describe "edit" do
-    # TODO Update this so only works if matching ids and not otherwise !!!!!!!
     it "user access edit view for work they created" do
       login(users(:dan))
       work_id = works(:thrill).id
