@@ -16,10 +16,12 @@ describe Vote do
   end
 
   describe "validations" do
-    let (:user1) { User.new(username: 'chris') }
-    let (:user2) { User.new(username: 'chris') }
-    let (:work1) { Work.new(category: 'book', title: 'House of Leaves') }
-    let (:work2) { Work.new(category: 'book', title: 'For Whom the Bell Tolls') }
+    let(:dan) { users(:dan) }
+
+    let (:user1) { User.new(username: 'chris', uid: 1000, provider: 'github') }
+    let (:user2) { User.new(username: 'chris', uid: 1001, provider: 'github') }
+    let (:work1) { Work.new(category: 'book', title: 'House of Leaves', user: dan) }
+    let (:work2) { Work.new(category: 'book', title: 'For Whom the Bell Tolls', user: dan) }
 
     it "allows one user to vote for multiple works" do
       vote1 = Vote.new(user: user1, work: work1)

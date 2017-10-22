@@ -20,6 +20,8 @@ describe Work do
   end
 
   describe "validations" do
+    let(:dan) { users(:dan) }
+
     it "allows the three valid categories" do
       valid_categories = ['album', 'book', 'movie']
       valid_categories.each do |category|
@@ -83,7 +85,7 @@ describe Work do
     it "tracks the number of votes" do
       work = Work.create!(title: "test title", category: "movie")
       4.times do |i|
-        user = User.create!(username: "user#{i}")
+        user = User.create!(username: "user#{i}", uid: i, provider: "github")
         Vote.create!(user: user, work: work)
       end
       work.vote_count.must_equal 4
@@ -92,18 +94,20 @@ describe Work do
   end
 
   describe "top_ten" do
+    let(:dan) { users(:dan) }
+
     before do
       # TODO DPR: This runs pretty slow. Fixtures?
       # Create users to do the voting
       test_users = []
       20.times do |i|
-        test_users << User.create!(username: "user#{i}")
+        test_users << User.create!(username: "user#{i}", uid: i, provider: "github")
       end
 
       # Create media to vote upon
       Work.where(category: "movie").destroy_all
       8.times do |i|
-        work = Work.create!(category: "movie", title: "test movie #{i}")
+        work = Work.create!(category: "movie", title: "test movie #{i}", user: dan)
         vote_count = rand(test_users.length)
         test_users.first(vote_count).each do |user|
           Vote.create!(work: work, user: user)
