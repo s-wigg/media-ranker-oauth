@@ -132,10 +132,20 @@ describe WorksController do
 
   describe "edit" do
     # TODO Update this so only works if matching ids and not otherwise !!!!!!!
-    # it "succeeds for an extant work ID" do
-    #   get edit_work_path(Work.first)
-    #   must_respond_with :success
-    # end
+    it "user access edit view for work they created" do
+      login(users(:dan))
+      work_id = works(:thrill).id
+      get work_path(work_id)
+      must_respond_with :success
+    end
+
+    it "user cannot edit work they did not create" do
+      login(users(:kari))
+      work_id = works(:thrill).id
+      get edit_work_path(work_id)
+      must_respond_with :redirect
+      must_redirect_to work_path(work_id)
+    end
 
     it "renders 404 not_found for a bogus work ID" do
       login(users(:dan))
@@ -146,19 +156,14 @@ describe WorksController do
   end
 
   describe "update" do
-    it "succeeds for valid data and an extant work ID" do
-      work = Work.first
-      work_data = {
-        work: {
-          title: work.title + " addition"
-        }
-      }
-      login(users(:dan))
-      patch work_path(work), params: work_data
-      must_redirect_to work_path(work)
 
+    it "user can updated work they created" do
+      login(users(:dan))
+      work_id = works(:thrill).id
+      patch work_path(work_id), params: { work: {title: "New Title" }}
+      must_redirect_to work_path(work_id)
       # Verify the DB was really modified
-      Work.find(work.id).title.must_equal work_data[:work][:title]
+      Work.find(work_id).title.must_equal "New Title"
     end
 
     it "renders bad_request for bogus data" do
@@ -185,14 +190,22 @@ describe WorksController do
   end
 
   describe "destroy" do
-    it "succeeds for an extant work ID" do
-      work_id = Work.first.id
+
+    it "user can delete work they created" do
       login(users(:dan))
+      work_id = works(:thrill).id
       delete work_path(work_id)
       must_redirect_to root_path
-
       # The work should really be gone
       Work.find_by(id: work_id).must_be_nil
+    end
+
+    it "user cannot delete work they didn't create" do
+      login(users(:kari))
+      work_id = works(:thrill).id
+      delete work_path(work_id)
+      must_respond_with :redirect
+      must_redirect_to work_path(work_id)
     end
 
     it "renders 404 not_found and does not update the DB for a bogus work ID" do
