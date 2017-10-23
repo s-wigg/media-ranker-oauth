@@ -19,10 +19,11 @@ class ApplicationController < ActionController::Base
 
   def authenticate
     unless session[:user_id]
-      redirect_to root_path
+      flash[:result_text] = "Access Denied -- Please log in to complete that action"
+      redirect_to root_path, status: :unauthorized
     end
   end
 
-  
+
 
 end

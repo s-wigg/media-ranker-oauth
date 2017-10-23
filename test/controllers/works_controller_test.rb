@@ -219,64 +219,58 @@ describe WorksController do
     end
   end
 
-  # describe "upvote" do
-  #   let(:user) { User.create!(username: "test_user") }
-  #   let(:work) { Work.first }
-  #
-  #   def login
-  #     post login_path, params: { username: user.username }
-  #     must_respond_with :redirect
-  #   end
-  #
-  #   def logout
-  #     post logout_path
-  #     must_respond_with :redirect
-  #   end
-  #
-  #   it "returns 401 unauthorized if no user is logged in" do
-  #     start_vote_count = work.votes.count
-  #
-  #     post upvote_path(work)
-  #     must_respond_with :unauthorized
-  #
-  #     work.votes.count.must_equal start_vote_count
-  #   end
-  #
-  #   it "returns 401 unauthorized after the user has logged out" do
-  #     start_vote_count = work.votes.count
-  #
-  #     login
-  #     logout
-  #
-  #     post upvote_path(work)
-  #     must_respond_with :unauthorized
-  #
-  #     work.votes.count.must_equal start_vote_count
-  #   end
-  #
-  #   it "succeeds for a logged-in user and a fresh user-vote pair" do
-  #     start_vote_count = work.votes.count
-  #
-  #     login
-  #
-  #     post upvote_path(work)
-  #     # Should be a redirect_back
-  #     must_respond_with :redirect
-  #
-  #     work.reload
-  #     work.votes.count.must_equal start_vote_count + 1
-  #   end
-  #
-  #   it "returns 409 conflict if the user has already voted for that work" do
-  #     login
-  #     Vote.create!(user: user, work: work)
-  #
-  #     start_vote_count = work.votes.count
-  #
-  #     post upvote_path(work)
-  #     must_respond_with :conflict
-  #
-  #     work.votes.count.must_equal start_vote_count
-  #   end
-  # end
+  describe "upvote" do
+    let(:user) { User.create!(username: "test_user", uid: 1000, provider: "github")}
+    let(:work) { works(:poodr) }
+
+    # def login
+    #   post login_path, params: { username: user.username }
+    #   must_respond_with :redirect
+    # end
+    #
+    def logout
+      post logout_path
+      must_respond_with :redirect
+    end
+
+    it "returns 401 unauthorized if no user is logged in" do
+      start_vote_count = (Work.first).votes.count
+      post upvote_path(Work.first.id)
+      must_respond_with 401
+      flash[:result_text].must_equal "Access Denied -- Please log in to complete that action"
+      (Work.first).votes.count.must_equal start_vote_count
+    end
+
+    it "returns 401 unauthorized after the user has logged out" do
+      login(users(:dan))
+      logout
+      start_vote_count = (Work.first).votes.count
+      post upvote_path(Work.first.id)
+      must_respond_with 401
+      flash[:result_text].must_equal "Access Denied -- Please log in to complete that action"
+      (Work.first).votes.count.must_equal start_vote_count
+    end
+
+    it "succeeds for a logged-in user and a fresh user-vote pair" do
+      start_vote_count = work.votes.count
+
+      login(users(:dan))
+
+      post upvote_path(work)
+      # Should be a redirect_back
+      must_respond_with :redirect
+
+      work.reload
+      work.votes.count.must_equal start_vote_count + 1
+    end
+
+    it "returns 409 conflict if the user has already voted for that work" do
+      login(users(:dan))
+
+      post upvote_path(works(:thrill).id)
+      proc { post upvote_path(works(:thrill).id)}.must_change 'Vote.count', 0
+      status.must_equal 409
+      flash[:result_text].must_equal "Could not upvote"
+    end
+  end
 end
